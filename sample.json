@@ -1,1 +1,5 @@
-{}
+{
+    "enableLogging": true,
+    "logLevel": "info",
+    "maxRetries": 3
+}
