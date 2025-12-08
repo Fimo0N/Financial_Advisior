@@ -2,12 +2,12 @@
 
 A financial advisor dashboard built with **React**, **Vite**, and **Tailwind CSS**.
 
-## 🚀 Tech Stack
+## 🚀Tech Stack
 - React (Vite)
 - Tailwind CSS
 - npm
 
-## 🛠️ Complete Setup & Contribution Guide (All-in-One)
+## 🛠️Complete Setup & Contribution Guide (All-in-One)
 
 ```bash
 

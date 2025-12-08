@@ -115,19 +115,15 @@ const ConversationalAdvice = () => {
             const newsUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(entities.searchQuery)}&sortBy=relevancy&pageSize=5&apiKey=${newsApiKey}`;
             // UPDATED: New API endpoint structure for Twelve Data
             const stockUrl = `https://api.twelvedata.com/quote?symbol=${entities.stockSymbol}&apikey=${twelveDataApiKey}`;
-
             const [newsResponse, stockResponse] = await Promise.all([
                 axios.get(newsUrl),
                 axios.get(stockUrl)
             ]);
-
             const headlines = newsResponse.data.articles.map(a => a.title);
             const stockData = stockResponse.data;
             // UPDATED: Parsing the new response structure
             const price = (stockData && stockData.close) ? stockData.close : 'Not found';
-            
             setConversation(prev => [...prev, { role: 'model', text: `Found data for ${entities.stockSymbol}. Now generating analysis...`, isStatus: true }]);
-
             const analysisPrompt = `You are a concise financial analyst. Based ONLY on the following real-time data, provide an investment analysis for the user's request: "${message}".
             
             Real-time Data:
@@ -136,17 +132,14 @@ const ConversationalAdvice = () => {
                 - "${headlines.join('"\n                - "')}"
             
             Return a JSON object with two keys: "analysisText" (a brief, to-the-point summary with pros and cons, formatted using markdown) and "overallSentiment" (one word: "Positive", "Negative", or "Neutral").`;
-            
             const finalResult = await model.generateContent(analysisPrompt);
             const finalText = finalResult.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
             const analysisData = JSON.parse(finalText);
-            
             setConversation(prev => [...prev, { 
                 role: 'model', 
                 text: analysisData.analysisText, 
                 sentiment: analysisData.overallSentiment 
             }]);
-
         } catch (error) {
             console.error("Error in analysis mode:", error);
             setConversation(prev => [...prev, { role: 'model', text: 'Sorry, I failed to gather data or perform the analysis. The company might not be publicly traded or an API limit was reached.' }]);
