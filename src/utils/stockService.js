@@ -1,14 +1,40 @@
 import axios from 'axios';
 import { twelveDataApiKey } from '../config/apiKeys';
 
+
 // ──────────────────────────────────────────
-// NEW: Fetch real-time quote from Twelve Data
-// Endpoint: /quote
+// SIMPLE PARSED QUOTE (task requirement)
+// Parses price, change, percent_change
+// ──────────────────────────────────────────
+export const fetchParsedQuote = async (symbol) => {
+    try {
+        const url = `https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${twelveDataApiKey}`;
+
+        const response = await axios.get(url);
+        const data = response.data;
+
+        return {
+            price: parseFloat(data.price),
+            change: parseFloat(data.change),
+            percent_change: parseFloat(data.percent_change)
+        };
+
+    } catch (error) {
+        console.error("Error parsing quote data:", error);
+        return null;
+    }
+};
+
+
+// ──────────────────────────────────────────
+// FULL QUOTE ENDPOINT FUNCTION
+// (returns all key metrics from Twelve Data)
 // ──────────────────────────────────────────
 export const fetchQuote = async (symbol) => {
     try {
-        // Handle Crypto Symbols (same mapping logic as historical data)
         let querySymbol = symbol;
+
+        // Crypto translation table
         const cryptoMap = {
             'BTC': 'BTC/USD',
             'ETH': 'ETH/USD',
@@ -18,6 +44,7 @@ export const fetchQuote = async (symbol) => {
             'ADA': 'ADA/USD',
             'BNB': 'BNB/USD'
         };
+
         if (cryptoMap[symbol]) {
             querySymbol = cryptoMap[symbol];
         }
@@ -27,13 +54,11 @@ export const fetchQuote = async (symbol) => {
         const response = await axios.get(url);
         const data = response.data;
 
-        // Error handling (Twelve Data uses 'status' for errors here)
         if (data.status === "error") {
             console.error("Quote API Error:", data.message);
             return null;
         }
 
-        // Return cleaned data in consistent format
         return {
             symbol: data.symbol,
             name: data.name,
@@ -54,13 +79,15 @@ export const fetchQuote = async (symbol) => {
     }
 };
 
+
 // ──────────────────────────────────────────
-// ORIGINAL: Fetch historical data (unchanged)
+// HISTORICAL DATA (your original function)
 // ──────────────────────────────────────────
 export const fetchHistoricalData = async (symbol) => {
     try {
-        // 1. Handle Crypto Symbols automatically
         let querySymbol = symbol;
+
+        // Crypto translation table
         const cryptoMap = {
             'BTC': 'BTC/USD',
             'ETH': 'ETH/USD',
@@ -74,19 +101,16 @@ export const fetchHistoricalData = async (symbol) => {
             querySymbol = cryptoMap[symbol];
         }
 
-        // 2. Construct the API URL
         const url = `https://api.twelvedata.com/time_series?symbol=${querySymbol}&interval=1day&outputsize=5000&apikey=${twelveDataApiKey}`;
 
         console.log(`Fetching history for ${querySymbol}...`);
 
-        // 3. Make the request
         const response = await axios.get(url);
         const data = response.data;
 
-        // 4. Check for API errors 
         if (data.code && data.code !== 200) {
             console.error("API Error:", data.message);
-            return null; 
+            return null;
         }
 
         if (!data.values || data.values.length === 0) {
@@ -94,7 +118,6 @@ export const fetchHistoricalData = async (symbol) => {
             return null;
         }
 
-        // 5. Transform the data
         const cleanData = data.values.map(day => ({
             date: day.datetime,
             close: parseFloat(day.close)
