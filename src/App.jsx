@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, BarChart2, BrainCircuit, Newspaper, Target } from 'lucide-react';
+import { Home, BarChart2, BrainCircuit, Newspaper, Target, TrendingUp } from 'lucide-react';
 
 import Navigation from './components/Navigation.jsx';
 import DashboardScreen from './screens/DashboardScreen.jsx';
@@ -7,6 +7,7 @@ import PortfolioScreen from './screens/PortfolioScreen.jsx';
 import AiInsightsScreen from './screens/AiInsightsScreen.jsx';
 import FinancialNewsScreen from './screens/FinancialNewsScreen.jsx';
 import GoalsScreen from './screens/GoalsScreen.jsx';
+import PredictionScreen from './screens/PredictionScreen.jsx';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('Dashboard');
@@ -60,6 +61,8 @@ function App() {
         return <DashboardScreen holdings={holdings} />;
       case 'Portfolio':
         return <PortfolioScreen holdings={holdings} addHolding={addHolding} removeHolding={removeHolding} />;
+      case 'Prediction':
+        return <PredictionScreen />;
       case 'AI Insights':
         return <AiInsightsScreen />;
       case 'Financial News':
@@ -71,12 +74,11 @@ function App() {
     }
   };
 
-
    // Navigation items configuration
     const navItems = [
         { name: 'Dashboard', icon: Home },
         { name: 'Portfolio', icon: BarChart2 },
-       // { name: 'AI Insights', icon: Bot },
+        { name: 'Prediction', icon: TrendingUp },
         { name: 'Financial News', icon: Newspaper },
         { name: 'Goals', icon: Target },
     ];
@@ -100,4 +102,3 @@ function App() {
 }
 
 export default App;
-
