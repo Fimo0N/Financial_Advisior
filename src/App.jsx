@@ -9,20 +9,21 @@ import FinancialNewsScreen from './screens/FinancialNewsScreen.jsx';
 import GoalsScreen from './screens/GoalsScreen.jsx';
 import PredictionScreen from './screens/PredictionScreen.jsx';
 import DarkModeToggle from './components/DarkModeToggle';
+import './index.css';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('Dashboard');
 
-  // --- Centralized State for Portfolio ---
+  //Centralized State for Portfolio
   const [holdings, setHoldings] = useState([]);
 
-  // --- Centralized State for Goals ---
+  //Centralized State for Goals
   const [goals, setGoals] = useState([
     { id: 1, name: 'Vacation Fund', target: 5000, current: 1200 },
     { id: 2, name: 'New Car', target: 25000, current: 8500 },
   ]);
 
-  // Function to add a new holding to the portfolio
+  //Function to add a new holding to the portfolio
   const addHolding = (newHolding) => {
     const existingHoldingIndex = holdings.findIndex(h => h.symbol === newHolding.symbol.toUpperCase());
 
@@ -35,17 +36,17 @@ function App() {
     }
   };
 
-  // Function to remove a holding
+  //Function to remove a holding
   const removeHolding = (symbol) => {
     setHoldings(holdings.filter(h => h.symbol !== symbol));
   };
 
-  // Function to add a new goal
+  //Function to add a new goal
   const addGoal = (newGoal) => {
     setGoals([...goals, { ...newGoal, id: Date.now(), current: 0 }]);
   };
 
-  // Function to add a contribution to a goal
+  //Function to add a contribution to a goal
   const addContribution = (goalId, amount) => {
     const updatedGoals = goals.map(goal => {
       if (goal.id === goalId) {
@@ -75,7 +76,7 @@ function App() {
     }
   };
 
-   // Navigation items configuration
+   //Navigation items configuration
     const navItems = [
         { name: 'Dashboard', icon: Home },
         { name: 'Portfolio', icon: BarChart2 },
