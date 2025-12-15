@@ -1,56 +1,43 @@
-import axios from 'axios';
-import { twelveDataApiKey } from '../config/apiKeys';
+export const fetchStockPrice = async (symbol) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-// This is the main function we will call from our screens
-// It takes a 'symbol' (like 'TSLA') as an argument
+    // Mock data generation
+    // deterministic based on symbol char codes so it doesn't jump wildly on every keystroke
+    // but random enough to look real
+    const hash = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const basePrice = (hash % 500) + 50; // Price between $50 and $550
+
+    // Add some random noise for "real-time" feel
+    const noise = (Math.random() - 0.5) * 2;
+    return parseFloat((basePrice + noise).toFixed(2));
+};
+
 export const fetchHistoricalData = async (symbol) => {
-    try {
-        // 1. Handle Crypto Symbols automatically
-        let querySymbol = symbol;
-        const cryptoMap = {
-            'BTC': 'BTC/USD',
-            'ETH': 'ETH/USD',
-            'SOL': 'SOL/USD',
-            'DOGE': 'DOGE/USD',
-            'XRP': 'XRP/USD',
-            'ADA': 'ADA/USD',
-            'BNB': 'BNB/USD'
-        };
-        if (cryptoMap[symbol]) {
-            querySymbol = cryptoMap[symbol];
-        }
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 2. Construct the API URL
-        // INCREASED outputsize to 5000 to support 1-year forecasts and robust volatility calculation
-        const url = `https://api.twelvedata.com/time_series?symbol=${querySymbol}&interval=1day&outputsize=5000&apikey=${twelveDataApiKey}`;
+    const history = [];
+    const today = new Date();
 
-        console.log(`Fetching history for ${querySymbol}...`); 
+    // Deterministic start price based on symbol
+    const hash = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    let price = (hash % 400) + 50;
 
-        // 3. Make the request
-        const response = await axios.get(url);
-        const data = response.data;
+    // Generate 180 days of history
+    for (let i = 180; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
 
-        // 4. Check for API errors 
-        if (data.code && data.code !== 200) {
-            console.error("API Error:", data.message);
-            return null; 
-        }
+        // Random walk
+        const change = (Math.random() - 0.5) * 5;
+        price += change;
+        if (price < 10) price = 10;
 
-        if (!data.values || data.values.length === 0) {
-             console.warn(`No data values returned for ${querySymbol}`);
-             return null;
-        }
-
-        // 5. Transform the data
-        const cleanData = data.values.map(day => ({
-            date: day.datetime,
-            close: parseFloat(day.close)
-        })).reverse();
-
-        return cleanData;
-
-    } catch (error) {
-        console.error("Network or Server Error:", error);
-        return null;
+        history.push({
+            date: date.toISOString().split('T')[0],
+            close: parseFloat(price.toFixed(2))
+        });
     }
+    return history;
 };
