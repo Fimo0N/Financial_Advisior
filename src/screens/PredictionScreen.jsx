@@ -5,12 +5,32 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { fetchHistoricalData } from '../utils/stockService';
 import { runMLForecast } from '../utils/mlModel';
 import { Search, Loader2, TrendingUp, AlertTriangle, ArrowUpCircle, ArrowDownCircle, MinusCircle, BrainCircuit, Newspaper } from 'lucide-react';
+import PredictionHistory from "../components/PredictionHistory";
+import {
+  savePrediction,
+  getPredictions,
+  clearPredictions
+} from "../utils/predictionHistory";
+
 
 const genAI = new GoogleGenerativeAI(geminiApiKey2);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const [history, setHistory] = useState([]);
 
 // --- Interactive Stock Chart Component ---
 // (Kept largely the same, but ensures it can handle the new data structure if needed)
+useEffect(() => {
+  setHistory(getPredictions());
+}, []);
+const entry = {
+  symbol: selectedStock,
+  summary: predictionText,
+  time: Date.now()
+};
+
+savePrediction(entry);
+setHistory(getPredictions());
+
 const StockChart = ({ history, prediction, verdict }) => {
     const [hoverData, setHoverData] = useState(null);
     const svgRef = useRef(null);
@@ -339,5 +359,13 @@ const PredictionScreen = () => {
         </div>
     );
 };
+<PredictionHistory
+  history={history}
+  onClear={() => {
+    clearPredictions();
+    setHistory([]);
+  }}
+/>
+
 
 export default PredictionScreen;
