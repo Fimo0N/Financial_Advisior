@@ -5,12 +5,70 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { fetchHistoricalData } from '../utils/stockService';
 // import { runMLForecast } from '../utils/mlModel'; // Disabled for Monte Carlo
 import { Search, Loader2, TrendingUp, AlertTriangle, ArrowUpCircle, ArrowDownCircle, MinusCircle, BrainCircuit, Newspaper } from 'lucide-react';
+import PredictionHistory from "../components/PredictionHistory";
+import {
+  savePrediction,
+  getPredictions,
+  clearPredictions
+} from "../utils/predictionHistory";
+import StockComparison from "../components/StockComparison";
+
+
 
 const genAI = new GoogleGenerativeAI(geminiApiKey2);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const [history, setHistory] = useState([]);
+const [comparisonResult, setComparisonResult] = useState("");
+
 
 // --- Interactive Stock Chart Component ---
 // (Kept largely the same, but ensures it can handle the new data structure if needed)
+useEffect(() => {
+  setHistory(getPredictions());
+}, []);
+const entry = {
+  symbol: selectedStock,
+  summary: predictionText,
+  time: Date.now()
+};
+
+savePrediction(entry);
+setHistory(getPredictions());
+const handleCompare = async (stockA, stockB) => {
+  try {
+    setLoading(true);
+    setComparisonResult("");
+
+    const dataA = await fetchHistoricalData(stockA);
+    const dataB = await fetchHistoricalData(stockB);
+
+    const prompt = `
+Compare the following two stocks as a financial advisor.
+
+Stock A (${stockA}) data summary:
+${JSON.stringify(dataA.slice(-5))}
+
+Stock B (${stockB}) data summary:
+${JSON.stringify(dataB.slice(-5))}
+
+Provide:
+- Which stock appears stronger
+- Risk comparison
+- Short investment recommendation
+`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(prompt);
+
+    setComparisonResult(result.response.text());
+  } catch (err) {
+    setComparisonResult("Failed to compare stocks.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 const StockChart = ({ history, prediction, verdict }) => {
     const [hoverData, setHoverData] = useState(null);
     const svgRef = useRef(null);
@@ -385,8 +443,26 @@ const PredictionScreen = () => {
                     </div>
                 </div>
             )}
+            <StockComparison onCompare={handleCompare} loading={loading} />
+
+            {comparisonResult && (
+            <div style={{ marginTop: "20px" }}>
+                <h3>Comparison Result</h3>
+                <p>{comparisonResult}</p>
+            </div>
+            )}
+            <PredictionHistory
+            history={history}
+            onClear={() => {
+                clearPredictions();
+                setHistory([]);
+            }}
+            />
+
         </div>
     );
 };
+
+
 
 export default PredictionScreen;
